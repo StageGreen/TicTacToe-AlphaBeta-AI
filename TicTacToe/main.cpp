@@ -10,5 +10,3 @@ int main()
 	GameEngine Engine;
 	Engine.play();
 }
-
-//Use arrows and space to play

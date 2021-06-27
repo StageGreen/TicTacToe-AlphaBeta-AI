@@ -67,8 +67,10 @@ public:
 	void drawBoard(); //draws empty board
 	void drawCursor(); //highlights selected square
 	void redrawPiece(); //deselects square
-	bool isVictory(int last_move); //checks if last move created 3 in a line
+	bool const lastMoveWins(int last_move); //checks if last move created 3 in a line
 	void gameEnd(); //prints message
+
+	char const getBoardState(); //returns X or O when victory, ' ' when draw, . else
 
 private:
 	piece pieces; //char consts

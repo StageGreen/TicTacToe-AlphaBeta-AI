@@ -99,7 +99,7 @@ void GameEngine::userInput()
 			cout << pieces.x;
 			board[position] = pieces.x;
 			movesPlayed++;
-			if (isVictory(position))
+			if (lastMoveWins(position))
 				xWins = true;
 			
 			/*
@@ -108,7 +108,7 @@ void GameEngine::userInput()
 			cout << pieces.o;
 			board[position] = pieces.o;
 			movesPlayed++;
-			if (isVictory(position))
+			if (lastMoveWins(position))
 				oWins = true;
 			*/
 		}
@@ -148,7 +148,7 @@ void GameEngine::redrawPiece()
 	cout << board[position];
 }
 
-bool GameEngine::isVictory(int last_move)
+bool const GameEngine::lastMoveWins(int last_move)
 {
 	if (last_move % 2 == 0) //if move is even, check diagonals 
 	{
@@ -172,4 +172,47 @@ bool GameEngine::isVictory(int last_move)
 		board[column + 3] == board[column + 2 * 3])
 		return true;
 	return false; //no victory found
+}
+
+char const GameEngine::getBoardState()
+{
+	//Check rows
+	for (size_t i = 0; i < 3; i++)
+	{
+		int row = i * 3; 
+		if (board[row] != pieces.empty &&
+			board[row] == board[row + 1] &&
+			board[row + 1] == board[row + 2])
+			return board[row];
+	}
+
+	//Check columns
+	for (size_t i = 0; i < 3; i++)
+	{
+		if (board[i] != pieces.empty && 
+			board[i] == board[i + 3] &&
+			board[i + 3] == board[i + 2 * 3])
+			return board[i];
+	}
+
+	//Check diagonals
+	if (board[2] != pieces.empty &&
+		board[2] == board[4] && board[4] == board[6])
+		return board[2];
+
+	if (board[0] != pieces.empty &&
+		board[0] == board[4] && board[4] == board[8])
+		return board[0];
+		
+	//Check for full board
+	for (size_t i = 0; i < 9; i++)
+	{
+		if (board[i] == pieces.empty)
+			break;
+		if (i == 8)
+			return pieces.empty;
+	}
+
+	//Game continues
+	return pieces.point;
 }
