@@ -97,7 +97,7 @@ void GameEngine::userInput()
 		{
 			playerPlays();
 			// If board is full the last move of O shouldnt be played
-			if (getBoardState() != pieces.empty) {
+			if (movesPlayed < 9) {
 				AIPlays();
 				drawCursor();
 			}
@@ -140,7 +140,7 @@ void GameEngine::redrawPiece()
 
 bool const GameEngine::lastMoveWins(int last_move)
 {
-	if (last_move % 2 == 0) //if move is even, check diagonals 
+	if (last_move % 2 == 0) //if move is even, check diagonals
 	{
 		if (last_move != 0 && last_move != 8 &&
 			board[2] == board[4] && board[4] == board[6])
@@ -152,13 +152,13 @@ bool const GameEngine::lastMoveWins(int last_move)
 
 	int row = last_move / 3; //number of row (0-2)
 	int first_el = row * 3; //first element of the row of the last moved piece
-	
-	if (board[first_el] == board[first_el + 1] && 
+
+	if (board[first_el] == board[first_el + 1] &&
 		board[first_el + 1] == board[first_el + 2])
 		return true;
 
 	int column = last_move % 3; //number of column (0-2)
-	if (board[column] == board[column + 3] && 
+	if (board[column] == board[column + 3] &&
 		board[column + 3] == board[column + 2 * 3])
 		return true;
 	return false; //no victory found
@@ -179,7 +179,7 @@ char const GameEngine::getBoardState()
 	//Check rows
 	for (size_t i = 0; i < 3; i++)
 	{
-		int row = i * 3; 
+		int row = i * 3;
 		if (board[row] != pieces.empty &&
 			board[row] == board[row + 1] &&
 			board[row + 1] == board[row + 2])
@@ -189,7 +189,7 @@ char const GameEngine::getBoardState()
 	//Check columns
 	for (size_t i = 0; i < 3; i++)
 	{
-		if (board[i] != pieces.empty && 
+		if (board[i] != pieces.empty &&
 			board[i] == board[i + 3] &&
 			board[i + 3] == board[i + 2 * 3])
 			return board[i];
@@ -203,7 +203,7 @@ char const GameEngine::getBoardState()
 	if (board[0] != pieces.empty &&
 		board[0] == board[4] && board[4] == board[8])
 		return board[0];
-		
+
 	//Check for full board
 	for (size_t i = 0; i < 9; i++)
 	{
@@ -243,7 +243,7 @@ void GameEngine::cleanTimeAI()
 }
 
 // Player "O" is max, in this case AI
-ratingAndMove GameEngine::maxAlphaBeta(int alpha, int beta) 
+ratingAndMove GameEngine::maxAlphaBeta(int alpha, int beta)
 {
 	//Possible values:
 	// 1 - win
@@ -268,7 +268,7 @@ ratingAndMove GameEngine::maxAlphaBeta(int alpha, int beta)
 
 	for (int i = 0; i < 9; i++) {
 		if (board[i] == pieces.empty) {
-			// On a empty square we start evaluating the 
+			// On a empty square we start evaluating the
 			// possible move(and branch of moves) player "O" can make
 			board[i] = pieces.o;
 			ratingAndMove nextBestMove = minAlphaBeta(alpha, beta);
@@ -289,7 +289,7 @@ ratingAndMove GameEngine::maxAlphaBeta(int alpha, int beta)
 }
 
 // Player "X" is min, in this case human
-ratingAndMove GameEngine::minAlphaBeta(int alpha, int beta) 
+ratingAndMove GameEngine::minAlphaBeta(int alpha, int beta)
 {
 	//Possible values:
 	// 1 - lost
