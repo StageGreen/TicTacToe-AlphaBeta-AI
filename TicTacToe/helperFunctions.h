@@ -5,4 +5,6 @@ void hideCursor(); //hides the cursor
 void gotoxy(short x, short y); //moves console pointer to (x, y) on the console screen 
 void setColor(short color);
 
+//Test
+
 #endif

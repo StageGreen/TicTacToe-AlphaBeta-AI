@@ -30,13 +30,13 @@ void GameEngine::play()
 
 void GameEngine::gameEnd()
 {
-	gotoxy(3, toScreen[8].x + 2);
+	gotoxy(0, toScreen[8].x + 2);
 	if (xWins)
-		cout << "You won!";
+		cout << "You won!" << endl;
 	else if (oWins)
-		cout << "You lost!";
+		cout << "You lost!" << endl;
 	else
-		cout << "Draw.";
+		cout << "Draw." << endl;
 }
 
 void GameEngine::gameLoop()
@@ -102,15 +102,25 @@ void GameEngine::userInput()
 			if (lastMoveWins(position))
 				xWins = true;
 			
-			/*
-			position = AI( ... )
-			gotoxy(toScreen[position].y, toScreen[position].x);
-			cout << pieces.o;
-			board[position] = pieces.o;
-			movesPlayed++;
-			if (lastMoveWins(position))
-				oWins = true;
-			*/
+			// If board is full the last move of O shouldnt be played
+			if (getBoardState() != pieces.empty) {
+				std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+				ratingAndMove bestMove = max_alpha_beta();
+				std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+				gotoxy(3, toScreen[8].x + 2);
+				//cout << "Evaluation time: " 
+				//	<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() 
+				//	<< "ms" << std::endl;
+				position = get<1>(bestMove);
+				//cout << "Best move: " << get<1>(bestMove);
+				gotoxy(toScreen[position].y, toScreen[position].x);
+				cout << pieces.o;
+				board[position] = pieces.o;
+				movesPlayed++;
+				if (lastMoveWins(position))
+					oWins = true;
+
+			}
 		}
 	}
 }
@@ -215,4 +225,79 @@ char const GameEngine::getBoardState()
 
 	//Game continues
 	return pieces.point;
+}
+
+// Player "O" is max, in this case AI
+ratingAndMove GameEngine::max_alpha_beta() {
+	//Possible values:
+	// 1 - win
+	// 0 - tie
+	// -1 - lose
+	int maxValue = -2;
+
+	// Best move hasnt been calculated
+	int move = -1;
+
+	//Set the base cases - win, loss, tie
+	char boardState = getBoardState();
+	if (boardState == pieces.x) {
+		return ratingAndMove(-1, 0);
+	}
+	if (boardState == pieces.o) {
+		return ratingAndMove(1, 0);
+	}
+	if (boardState == pieces.empty) {
+		return ratingAndMove(0, 0);
+	}
+
+	for (int i = 0; i < 9; i++) {
+		if (board[i] == pieces.empty) {
+			// On a empty square we start evaluating the 
+			// possible move(and branch of moves) player "O" can make
+			board[i] = pieces.o;
+			ratingAndMove nextBestMove = min_alpha_beta();
+			// Compare the evaluation of the moves and set if better
+			if (get<0>(nextBestMove) > maxValue) {
+				maxValue = get<0>(nextBestMove);
+				move = i;
+			}
+			board[i] = pieces.empty;
+		}
+	}
+	return ratingAndMove(maxValue, move);
+}
+
+// Player "X" is min, in this case human
+ratingAndMove GameEngine::min_alpha_beta() {
+	//Possible values:
+	// 1 - lost
+	// 0 - tie
+	// -1 - win
+	int minValue = 2;
+
+	int move = -1;
+
+	char boardState = getBoardState();
+	if (boardState == pieces.x) {
+		return ratingAndMove(-1, 0);
+	}
+	if (boardState == pieces.o) {
+		return ratingAndMove(1, 0);
+	}
+	if (boardState == pieces.empty) {
+		return ratingAndMove(0, 0);
+	}
+
+	for (int i = 0; i < 9; i++) {
+		if (board[i] == pieces.empty) {
+			board[i] = pieces.x;
+			ratingAndMove nextBestMove = max_alpha_beta();
+			if (get<0>(nextBestMove) < minValue) {
+				minValue = get<0>(nextBestMove);
+				move = i;
+			}
+			board[i] = pieces.empty;
+		}
+	}
+	return ratingAndMove(minValue, move);
 }
