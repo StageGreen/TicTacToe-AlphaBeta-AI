@@ -7,9 +7,9 @@
 // Structure of the tuple: evalution, position of next best move
 using ratingAndMove = std::tuple<int, int>;
 
-//helper structs & variables//
-
 const int gameSpeed = 30;
+const int gameEndLine = 6;
+const int TimeAILine = gameEndLine + 1;
 
 //char constants 
 struct piece
@@ -25,7 +25,6 @@ struct piece
 		empty = ' ';
 		point = '.';
 	}
-
 };
 
 enum color
@@ -73,11 +72,15 @@ public:
 	void redrawPiece(); //deselects square
 	bool const lastMoveWins(int last_move); //checks if last move created 3 in a line
 	void gameEnd(); //prints message
+	void playerPlays();
 
+	//AI methods
 	char const getBoardState(); //returns X or O when victory, ' ' when draw, . else
 	ratingAndMove max_alpha_beta();
 	ratingAndMove min_alpha_beta();
-
+	void printTimeAI(int recommended, double timeX, double timeO);
+	void cleanTimeAI();
+	void AIPlays();
 
 private:
 	piece pieces; //char consts

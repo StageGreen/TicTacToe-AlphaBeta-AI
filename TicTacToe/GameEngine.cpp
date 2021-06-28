@@ -30,7 +30,7 @@ void GameEngine::play()
 
 void GameEngine::gameEnd()
 {
-	gotoxy(0, toScreen[8].x + 2);
+	gotoxy(0, gameEndLine);
 	if (xWins)
 		cout << "You won!" << endl;
 	else if (oWins)
@@ -95,32 +95,9 @@ void GameEngine::userInput()
 	{
 		if (board[position] == pieces.empty) //if player can play here
 		{
-			gotoxy(toScreen[position].y, toScreen[position].x);
-			cout << pieces.x;
-			board[position] = pieces.x;
-			movesPlayed++;
-			if (lastMoveWins(position))
-				xWins = true;
-			
-			// If board is full the last move of O shouldnt be played
-			if (getBoardState() != pieces.empty) {
-				std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-				ratingAndMove bestMove = max_alpha_beta();
-				std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-				gotoxy(3, toScreen[8].x + 2);
-				//cout << "Evaluation time: " 
-				//	<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() 
-				//	<< "ms" << std::endl;
-				position = get<1>(bestMove);
-				//cout << "Best move: " << get<1>(bestMove);
-				gotoxy(toScreen[position].y, toScreen[position].x);
-				cout << pieces.o;
-				board[position] = pieces.o;
-				movesPlayed++;
-				if (lastMoveWins(position))
-					oWins = true;
-
-			}
+			playerPlays();
+			AIPlays();
+			drawCursor();
 		}
 	}
 }
@@ -184,6 +161,16 @@ bool const GameEngine::lastMoveWins(int last_move)
 	return false; //no victory found
 }
 
+void GameEngine::playerPlays()
+{
+	gotoxy(toScreen[position].y, toScreen[position].x);
+	cout << pieces.x;
+	board[position] = pieces.x;
+	movesPlayed++;
+	if (lastMoveWins(position))
+		xWins = true;
+}
+
 char const GameEngine::getBoardState()
 {
 	//Check rows
@@ -225,6 +212,31 @@ char const GameEngine::getBoardState()
 
 	//Game continues
 	return pieces.point;
+}
+
+void GameEngine::printTimeAI(int recommended, double timeX, double timeO)
+{
+	cleanTimeAI();
+	gotoxy(0, TimeAILine);
+	cout << "Recommended move for X: " << recommended % 3 << ", " << recommended / 3;
+	gotoxy(0, TimeAILine + 1);
+	cout << "Elapsed time for O move: " << timeO;
+	gotoxy(0, TimeAILine + 2);
+	cout << "Elapsed time for recommendation of X move: " << timeX << endl;
+}
+
+void GameEngine::cleanTimeAI()
+{
+	const int numberOfLines = 3;
+	const int widthOfText = 50;
+	for (size_t i = 0; i < numberOfLines; i++)
+	{
+		gotoxy(0, TimeAILine + i);
+		for (size_t i = 0; i < widthOfText; i++)
+		{
+			cout << ' ';
+		}
+	}
 }
 
 // Player "O" is max, in this case AI
@@ -300,4 +312,26 @@ ratingAndMove GameEngine::min_alpha_beta() {
 		}
 	}
 	return ratingAndMove(minValue, move);
+}
+
+void GameEngine::AIPlays()
+{
+	// If board is full the last move of O shouldnt be played
+	if (getBoardState() != pieces.empty) {
+		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+		ratingAndMove bestMove = max_alpha_beta();
+		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+		gotoxy(3, toScreen[8].x + 2);
+		//cout << "Evaluation time: " 
+		//	<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() 
+		//	<< "ms" << std::endl;
+		position = get<1>(bestMove);
+		//cout << "Best move: " << get<1>(bestMove);
+		gotoxy(toScreen[position].y, toScreen[position].x);
+		cout << pieces.o;
+		board[position] = pieces.o;
+		movesPlayed++;
+		if (lastMoveWins(position))
+			oWins = true;
+	}
 }
