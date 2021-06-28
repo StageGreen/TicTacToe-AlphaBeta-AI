@@ -2,6 +2,10 @@
 #define GAMEENGINE_H_INCLUDED
 
 #include "helperFunctions.h"
+#include <tuple>
+
+// Structure of the tuple: evalution, position of next best move
+using ratingAndMove = std::tuple<int, int>;
 
 //helper structs & variables//
 
@@ -71,6 +75,9 @@ public:
 	void gameEnd(); //prints message
 
 	char const getBoardState(); //returns X or O when victory, ' ' when draw, . else
+	ratingAndMove max_alpha_beta();
+	ratingAndMove min_alpha_beta();
+
 
 private:
 	piece pieces; //char consts
