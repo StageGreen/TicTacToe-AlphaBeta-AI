@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <windows.h>
 #include <chrono>
 #include "GameEngine.h"
@@ -96,8 +96,11 @@ void GameEngine::userInput()
 		if (board[position] == pieces.empty) //if player can play here
 		{
 			playerPlays();
-			AIPlays();
-			drawCursor();
+			// If board is full the last move of O shouldnt be played
+			if (movesPlayed < 9) {
+				AIPlays();
+				drawCursor();
+			}
 		}
 	}
 }
@@ -137,7 +140,7 @@ void GameEngine::redrawPiece()
 
 bool const GameEngine::lastMoveWins(int last_move)
 {
-	if (last_move % 2 == 0) //if move is even, check diagonals 
+	if (last_move % 2 == 0) //if move is even, check diagonals
 	{
 		if (last_move != 0 && last_move != 8 &&
 			board[2] == board[4] && board[4] == board[6])
@@ -149,13 +152,13 @@ bool const GameEngine::lastMoveWins(int last_move)
 
 	int row = last_move / 3; //number of row (0-2)
 	int first_el = row * 3; //first element of the row of the last moved piece
-	
-	if (board[first_el] == board[first_el + 1] && 
+
+	if (board[first_el] == board[first_el + 1] &&
 		board[first_el + 1] == board[first_el + 2])
 		return true;
 
 	int column = last_move % 3; //number of column (0-2)
-	if (board[column] == board[column + 3] && 
+	if (board[column] == board[column + 3] &&
 		board[column + 3] == board[column + 2 * 3])
 		return true;
 	return false; //no victory found
@@ -176,7 +179,7 @@ char const GameEngine::getBoardState()
 	//Check rows
 	for (size_t i = 0; i < 3; i++)
 	{
-		int row = i * 3; 
+		int row = i * 3;
 		if (board[row] != pieces.empty &&
 			board[row] == board[row + 1] &&
 			board[row + 1] == board[row + 2])
@@ -186,7 +189,7 @@ char const GameEngine::getBoardState()
 	//Check columns
 	for (size_t i = 0; i < 3; i++)
 	{
-		if (board[i] != pieces.empty && 
+		if (board[i] != pieces.empty &&
 			board[i] == board[i + 3] &&
 			board[i + 3] == board[i + 2 * 3])
 			return board[i];
@@ -200,7 +203,7 @@ char const GameEngine::getBoardState()
 	if (board[0] != pieces.empty &&
 		board[0] == board[4] && board[4] == board[8])
 		return board[0];
-		
+
 	//Check for full board
 	for (size_t i = 0; i < 9; i++)
 	{
@@ -214,21 +217,21 @@ char const GameEngine::getBoardState()
 	return pieces.point;
 }
 
-void GameEngine::printTimeAI(int recommended, double timeX, double timeO)
+void GameEngine::printTimeAI(int recommended, long timeX, long timeO)
 {
 	cleanTimeAI();
 	gotoxy(0, TimeAILine);
-	cout << "Recommended move for X: " << recommended % 3 << ", " << recommended / 3;
+	cout << "Elapsed time for O move: " << timeO << " microseconds ";
 	gotoxy(0, TimeAILine + 1);
-	cout << "Elapsed time for O move: " << timeO;
+	cout << "Recommended move for X: " << recommended % 3 << ", " << recommended / 3;
 	gotoxy(0, TimeAILine + 2);
-	cout << "Elapsed time for recommendation of X move: " << timeX << endl;
+	cout << "Elapsed time for recommendation of X move: " << timeX << " microseconds ";
 }
 
 void GameEngine::cleanTimeAI()
 {
 	const int numberOfLines = 3;
-	const int widthOfText = 50;
+	const int widthOfText = 60;
 	for (size_t i = 0; i < numberOfLines; i++)
 	{
 		gotoxy(0, TimeAILine + i);
@@ -240,7 +243,8 @@ void GameEngine::cleanTimeAI()
 }
 
 // Player "O" is max, in this case AI
-ratingAndMove GameEngine::max_alpha_beta() {
+ratingAndMove GameEngine::maxAlphaBeta(int alpha, int beta)
+{
 	//Possible values:
 	// 1 - win
 	// 0 - tie
@@ -264,23 +268,29 @@ ratingAndMove GameEngine::max_alpha_beta() {
 
 	for (int i = 0; i < 9; i++) {
 		if (board[i] == pieces.empty) {
-			// On a empty square we start evaluating the 
+			// On a empty square we start evaluating the
 			// possible move(and branch of moves) player "O" can make
 			board[i] = pieces.o;
-			ratingAndMove nextBestMove = min_alpha_beta();
+			ratingAndMove nextBestMove = minAlphaBeta(alpha, beta);
 			// Compare the evaluation of the moves and set if better
 			if (get<0>(nextBestMove) > maxValue) {
 				maxValue = get<0>(nextBestMove);
 				move = i;
 			}
 			board[i] = pieces.empty;
+			// The alpha beta prune happens in these 2 ifs
+			if (maxValue >= beta)
+				return ratingAndMove(maxValue, move);
+			if (maxValue > alpha)
+				alpha = maxValue;
 		}
 	}
 	return ratingAndMove(maxValue, move);
 }
 
 // Player "X" is min, in this case human
-ratingAndMove GameEngine::min_alpha_beta() {
+ratingAndMove GameEngine::minAlphaBeta(int alpha, int beta)
+{
 	//Possible values:
 	// 1 - lost
 	// 0 - tie
@@ -303,12 +313,16 @@ ratingAndMove GameEngine::min_alpha_beta() {
 	for (int i = 0; i < 9; i++) {
 		if (board[i] == pieces.empty) {
 			board[i] = pieces.x;
-			ratingAndMove nextBestMove = max_alpha_beta();
+			ratingAndMove nextBestMove = maxAlphaBeta(alpha, beta);
 			if (get<0>(nextBestMove) < minValue) {
 				minValue = get<0>(nextBestMove);
 				move = i;
 			}
 			board[i] = pieces.empty;
+			if (minValue <= alpha)
+				return ratingAndMove(minValue, move);
+			if (minValue < beta)
+				beta = minValue;
 		}
 	}
 	return ratingAndMove(minValue, move);
@@ -316,22 +330,22 @@ ratingAndMove GameEngine::min_alpha_beta() {
 
 void GameEngine::AIPlays()
 {
-	// If board is full the last move of O shouldnt be played
-	if (getBoardState() != pieces.empty) {
-		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-		ratingAndMove bestMove = max_alpha_beta();
-		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-		gotoxy(3, toScreen[8].x + 2);
-		//cout << "Evaluation time: " 
-		//	<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() 
-		//	<< "ms" << std::endl;
-		position = get<1>(bestMove);
-		//cout << "Best move: " << get<1>(bestMove);
-		gotoxy(toScreen[position].y, toScreen[position].x);
-		cout << pieces.o;
-		board[position] = pieces.o;
-		movesPlayed++;
-		if (lastMoveWins(position))
-			oWins = true;
-	}
+	// Timers for compariong min/max with alpha beta pruning optimization
+	std::chrono::steady_clock::time_point beginO = std::chrono::steady_clock::now();
+	ratingAndMove bestOMove = maxAlphaBeta(-2, 2);
+	std::chrono::steady_clock::time_point endO = std::chrono::steady_clock::now();
+	long timeO = (long)std::chrono::duration_cast<std::chrono::microseconds>(endO - beginO).count();
+	position = get<1>(bestOMove);
+	gotoxy(toScreen[position].y, toScreen[position].x);
+	cout << pieces.o;
+	board[position] = pieces.o;
+	movesPlayed++;
+	if (lastMoveWins(position))
+		oWins = true;
+	// Evaluate X best move and recommend it
+	std::chrono::steady_clock::time_point beginX = std::chrono::steady_clock::now();
+	ratingAndMove bestXMove = minAlphaBeta(-2, 2);
+	std::chrono::steady_clock::time_point endX = std::chrono::steady_clock::now();
+	long timeX = (long)std::chrono::duration_cast<std::chrono::microseconds>(endX - beginX).count();
+	printTimeAI(get<1>(bestXMove), timeX, timeO);
 }
