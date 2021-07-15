@@ -122,7 +122,9 @@ void GameEngine::drawBoard()
 }
 
 void GameEngine::drawCursor()
-{
+{ 
+	if (xWins || oWins)
+		return;
 	gotoxy(toScreen[position].y, toScreen[position].x);
 	setColor(green);
 	if (board[position] != pieces.empty)
@@ -136,6 +138,43 @@ void GameEngine::redrawPiece()
 {
 	gotoxy(toScreen[position].y, toScreen[position].x);
 	cout << board[position];
+}
+
+void GameEngine::colorLine(int last_move)
+{
+	if (last_move % 2 == 0) //if move is even, check diagonals
+	{
+		if (last_move != 0 && last_move != 8 &&
+			board[2] == board[4] && board[4] == board[6])
+			colorElements(2, 4, 6);
+		if (last_move != 2 && last_move != 6 &&
+			board[0] == board[4] && board[4] == board[8])
+			colorElements(0, 4, 8);
+	}
+
+	int row = last_move / 3; //number of row (0-2)
+	int first_el = row * 3; //first element of the row of the last moved piece
+
+	if (board[first_el] == board[first_el + 1] &&
+		board[first_el + 1] == board[first_el + 2])
+		colorElements(first_el, first_el + 1, first_el + 2);
+
+	int column = last_move % 3; //number of column (0-2)
+	if (board[column] == board[column + 3] &&
+		board[column + 3] == board[column + 2 * 3])
+		colorElements(column, column + 3, column + 2 * 3);
+}
+
+void GameEngine::colorElements(int frst, int scnd, int thrd)
+{
+	setColor(win_color);
+	gotoxy(toScreen[frst].y, toScreen[frst].x);
+	cout << board[frst];
+	gotoxy(toScreen[scnd].y, toScreen[scnd].x);
+	cout << board[scnd];
+	gotoxy(toScreen[thrd].y, toScreen[thrd].x);
+	cout << board[thrd];
+	setColor(default_color);
 }
 
 bool const GameEngine::lastMoveWins(int last_move)
@@ -171,7 +210,10 @@ void GameEngine::playerPlays()
 	board[position] = pieces.x;
 	movesPlayed++;
 	if (lastMoveWins(position))
+	{
 		xWins = true;
+		colorLine(position);
+	}
 }
 
 char const GameEngine::getBoardState()
@@ -330,7 +372,7 @@ ratingAndMove GameEngine::minAlphaBeta(int alpha, int beta)
 
 void GameEngine::AIPlays()
 {
-	// Timers for compariong min/max with alpha beta pruning optimization
+	// Timers for comparing min/max with alpha beta pruning optimization
 	std::chrono::steady_clock::time_point beginO = std::chrono::steady_clock::now();
 	ratingAndMove bestOMove = maxAlphaBeta(-2, 2);
 	std::chrono::steady_clock::time_point endO = std::chrono::steady_clock::now();
@@ -341,7 +383,10 @@ void GameEngine::AIPlays()
 	board[position] = pieces.o;
 	movesPlayed++;
 	if (lastMoveWins(position))
+	{
 		oWins = true;
+		colorLine(position);
+	}
 	// Evaluate X best move and recommend it
 	std::chrono::steady_clock::time_point beginX = std::chrono::steady_clock::now();
 	ratingAndMove bestXMove = minAlphaBeta(-2, 2);

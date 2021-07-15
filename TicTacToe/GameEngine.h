@@ -39,6 +39,7 @@ enum color
 };
 
 auto const default_color = white;
+auto const win_color = yellow;
 
 //int pair with name
 struct coord
@@ -63,6 +64,8 @@ class GameEngine
 public:
 	GameEngine();
 	void play(); //starts game
+
+private:
 	void gameLoop(); 
 	void userInput(); 
 	void init(); 
@@ -73,6 +76,8 @@ public:
 	bool const lastMoveWins(int last_move); //checks if last move created 3 in a line
 	void gameEnd(); //prints message
 	void playerPlays();
+	void colorLine(int last_move); //color the winning line
+	void colorElements(int frst, int scnd, int thrd);
 
 	//AI methods
 	char const getBoardState(); //returns X or O when victory, ' ' when draw, . else
@@ -95,3 +100,7 @@ private:
 };
 
 #endif
+
+// 0 1 2
+// 3 4 5
+// 6 7 8
