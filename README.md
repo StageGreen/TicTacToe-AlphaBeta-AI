@@ -11,8 +11,8 @@ full information.
 
 ### Comparison between Min-Max and Alpha-Beta pruning
 * The game shows the time it took to calculate the move
-* This comes in handy and the as the difference between the 2 algorithms is small
-* Test have shown that the optimized version is up to 20 times faster especially
+* This comes in handy as the difference between the code of the two algorithms is small
+* Tests have shown that the optimized version is up to 20 times faster especially
 when evaluating the first move of the AI
 
 ### Credits:
